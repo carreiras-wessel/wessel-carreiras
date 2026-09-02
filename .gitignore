@@ -1,0 +1,9 @@
+# Arquivo gerado automaticamente pelo build (o GitHub Actions recria a cada publicacao)
+site/data.js
+
+# Temporarios do Excel
+~$*.xlsx
+
+# Sistema
+.DS_Store
+Thumbs.db

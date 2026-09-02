@@ -1,0 +1,51 @@
+name: Publicar Wessel Carreiras
+
+# Roda quando a planilha em /dados muda (ou o site/scripts), e reconstroi
+# o portal automaticamente, publicando no GitHub Pages. Tambem pode ser
+# disparado manualmente pela aba Actions (Run workflow).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dados/**"
+      - "site/**"
+      - "scripts/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install openpyxl
+      - name: Gerar dados do portal a partir da planilha
+        run: python scripts/build.py
+      - name: Empacotar site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
