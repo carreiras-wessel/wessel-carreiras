@@ -115,19 +115,6 @@
   .kpi .l{font-size:12.5px;color:var(--ink-3);font-weight:600;margin-top:3px}
   .kpi .ring{position:absolute;right:14px;top:14px;width:38px;height:38px}
 
-  /* ===== Distribuicao por area ===== */
-  .dist{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:20px;box-shadow:var(--shadow-sm);animation:rise .5s var(--ease) both;animation-delay:.08s}
-  .dist h3{margin:0 0 14px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:8px}
-  .bars{display:flex;flex-direction:column;gap:9px}
-  .bar-row{display:grid;grid-template-columns:150px 1fr 42px;align-items:center;gap:12px;cursor:pointer;padding:3px 4px;border-radius:8px;transition:.14s}
-  .bar-row:hover{background:var(--panel-3)}
-  .bar-row .nm{font-size:12.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bar-row .nm .d{width:8px;height:8px;border-radius:3px;flex:none;background:var(--ac)}
-  .bar-track{height:9px;background:var(--panel-3);border-radius:20px;overflow:hidden}
-  .bar-fill{display:block;height:100%;border-radius:20px;background:var(--ac);width:0;transition:width 1s var(--ease)}
-  .bar-row .q{font-size:12.5px;font-weight:700;color:var(--ink-2);text-align:right}
-  @media(max-width:560px){.bar-row{grid-template-columns:110px 1fr 34px;gap:8px}}
-
   /* ===== Toolbar ===== */
   .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
   .toolbar .count{font-size:14px;font-weight:600;color:var(--ink-2)}
@@ -264,7 +251,6 @@
     .kpis{grid-template-columns:repeat(2,1fr);gap:10px}
     .kpi .v{font-size:23px}
     .page-h h1{font-size:21px}
-    .bar-row .nm{font-size:11.5px}
   }
 </style>
 </head>
@@ -314,11 +300,6 @@
       </div>
 
       <div class="kpis" id="kpis"></div>
-
-      <div class="dist">
-        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="22" y2="7"/></svg> Distribuicao por area</h3>
-        <div class="bars" id="bars"></div>
-      </div>
 
       <div class="toolbar">
         <span class="count" id="count"></span>
@@ -413,20 +394,6 @@ function renderKPIs(){
   ];
   $('kpis').innerHTML = kpis.map((k,i)=>`<div class="kpi" style="--kc:${k.c};animation-delay:${i*70}ms"><div class="ic">${k.ic}</div><div class="v" data-to="${k.v}" data-suf="${k.suf||''}">0${k.suf||''}</div><div class="l">${k.l}</div></div>`).join("");
   $('kpis').querySelectorAll('.v').forEach(el=>countUp(el,+el.dataset.to,el.dataset.suf));
-}
-
-/* ===== Distribuicao ===== */
-function renderBars(){
-  const entradas=Object.keys(D.areas).map(a=>[a,qtdArea(a)]).sort((x,y)=>y[1]-x[1]);
-  const max=Math.max(...entradas.map(e=>e[1]),1);
-  $('bars').innerHTML = entradas.map(([a,q])=>`
-    <div class="bar-row" data-area="${esc(a)}" style="--ac:${corArea(a)}">
-      <span class="nm"><span class="d"></span>${esc(a)}</span>
-      <span class="bar-track"><span class="bar-fill" data-w="${(q/max*100).toFixed(1)}"></span></span>
-      <span class="q">${q}</span>
-    </div>`).join("");
-  requestAnimationFrame(()=>$('bars').querySelectorAll('.bar-fill').forEach(f=>f.style.width=f.dataset.w+'%'));
-  $('bars').querySelectorAll('[data-area]').forEach(b=>b.onclick=()=>{ const a=b.dataset.area; estado.area=(estado.area===a)?null:a; estado.setor=null; render(); document.querySelector('.content').scrollIntoView({behavior:'smooth',block:'start'}); });
 }
 
 /* ===== Nav lateral ===== */
@@ -643,7 +610,7 @@ let tT; function toast(m){ const el=$('toast'); el.innerHTML='<span class="ck"><
 /* ===== Init ===== */
 try{ const v=localStorage.getItem('wessel-view'); if(v){ estado.view=v; $('viewSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===v)); } }catch(e){}
 $('sideFoot').innerHTML=`Atualizado ${esc((D.geradoEm||'').split(' ')[0]||'')}`;
-renderKPIs(); renderBars();
+renderKPIs();
 // skeleton breve para dar sensacao de app
 $('results').innerHTML='<div class="grid">'+Array(8).fill('<div class="sk"><div class="l1"></div><div class="l2"></div><div class="l3"></div></div>').join('')+'</div>';
 setTimeout(render,300);
