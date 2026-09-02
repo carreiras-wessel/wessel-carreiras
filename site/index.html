@@ -107,7 +107,7 @@
   .page-h p{margin:2px 0 0;color:var(--ink-3);font-size:13.5px}
 
   /* ===== KPIs ===== */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
   .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 17px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);animation:rise .5s var(--ease) both}
   .kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:var(--kc,var(--brand));opacity:.08}
   .kpi .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--kc,var(--brand));color:#fff;margin-bottom:12px;box-shadow:0 6px 14px color-mix(in srgb,var(--kc,var(--brand)) 40%,transparent)}
@@ -352,7 +352,6 @@ const D = window.WESSEL_DATA || {cargos:[], areas:{}, totalCargos:0};
 const AD = '<span class="adef">a definir</span>';
 const CORES = {"Produção":"#E92429","Logística":"#2563EB","Comercial":"#0f9d58","Administrativo/Financeiro":"#7C3AED","Manutenção":"#EA580C","Qualidade":"#0891B2","PCP":"#CA8A04","RH":"#DB2777","TI":"#4F46E5","Diretoria":"#64748B"};
 const corArea = a => CORES[a] || "#7a7e93";
-const PENDENTES = ["nivel","superior","subordinados","missao","comp_tecnicas","treinamentos","requisitos_fisicos","viagens"];
 
 const estado = {area:null, setor:null, busca:"", sort:"titulo", view:"grid"};
 const $ = id => document.getElementById(id);
@@ -378,19 +377,12 @@ const qtdArea = a => D.cargos.filter(c=>areasDo(c).includes(a)).length;
 
 /* ===== KPIs ===== */
 function contaSetores(){ const s=new Set(); Object.values(D.areas).forEach(arr=>arr.forEach(x=>s.add(x))); return s.size; }
-function completude(){
-  let ok=0,tot=0;
-  D.cargos.forEach(c=>PENDENTES.forEach(k=>{ tot++; if(tem(c[k])) ok++; }));
-  return tot?Math.round(ok/tot*100):0;
-}
 function countUp(el,to,suf){ const dur=850,t0=performance.now(); (function step(t){ const p=Math.min((t-t0)/dur,1); const e=1-Math.pow(1-p,3); el.textContent=Math.round(e*to)+(suf||""); if(p<1)requestAnimationFrame(step); })(t0); }
 function renderKPIs(){
-  const comp=completude();
   const kpis=[
     {ic:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',v:D.totalCargos,l:"Cargos cadastrados",c:"#E92429"},
     {ic:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',v:Object.keys(D.areas).length,l:"Areas",c:"#4F46E5"},
     {ic:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"/></svg>',v:contaSetores(),l:"Setores",c:"#0891B2"},
-    {ic:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',v:comp,l:"Completude da base",c:"#0f9d58",suf:"%"},
   ];
   $('kpis').innerHTML = kpis.map((k,i)=>`<div class="kpi" style="--kc:${k.c};animation-delay:${i*70}ms"><div class="ic">${k.ic}</div><div class="v" data-to="${k.v}" data-suf="${k.suf||''}">0${k.suf||''}</div><div class="l">${k.l}</div></div>`).join("");
   $('kpis').querySelectorAll('.v').forEach(el=>countUp(el,+el.dataset.to,el.dataset.suf));
