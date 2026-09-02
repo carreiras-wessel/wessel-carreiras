@@ -6,369 +6,481 @@
 <title>Wessel Carreiras</title>
 <meta name="description" content="Portal de descritivos de cargos da Wessel.">
 <link rel="icon" href="assets/logo-wessel.png">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="data.js"></script>
 <style>
   :root{
-    --vermelho:#E92429;
-    --vermelho-esc:#C11B20;
-    --tinta:#1b1b1d;
-    --tinta-suave:#55555b;
-    --tinta-fraca:#8a8a92;
-    --linha:#e7e7ea;
-    --fundo:#f4f4f6;
-    --branco:#ffffff;
-    --definir:#b23b3b;
-    --raio:12px;
-    --sombra:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06);
-    --fonte:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    --brand:#E92429; --brand-600:#c81a20; --brand-050:#fdecec;
+    --ink:#161619; --ink-2:#56565f; --ink-3:#8b8b95;
+    --line:#ececef; --line-2:#e2e2e7; --bg:#f6f6f8; --card:#ffffff;
+    --definir:#c0392b;
+    --r-lg:18px; --r-md:14px; --r-sm:10px;
+    --sh-sm:0 1px 2px rgba(20,20,30,.05);
+    --sh-md:0 6px 18px rgba(20,20,30,.08);
+    --sh-lg:0 24px 60px rgba(20,20,30,.22);
+    --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    --sidebar:264px;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{font-family:var(--fonte);color:var(--tinta);background:var(--fundo);line-height:1.5}
-  a{color:inherit}
-  button{font-family:inherit;cursor:pointer}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  ::selection{background:var(--brand);color:#fff}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-  /* Cabecalho */
-  header.topo{background:var(--vermelho);color:#fff}
-  .topo-inner{max-width:1200px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:16px}
-  .topo .logo{background:#fff;border-radius:10px;padding:8px 12px;display:flex;align-items:center;box-shadow:var(--sombra)}
-  .topo .logo img{height:38px;display:block}
-  .topo h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.2px}
-  .topo p{margin:2px 0 0;font-size:13px;opacity:.9}
-  .topo .cont{margin-left:auto;text-align:right;font-size:12px;opacity:.92}
-  .topo .cont b{font-size:22px;display:block;font-weight:700}
+  /* ===== Cabecalho ===== */
+  header.topo{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+  header.topo::before{content:"";display:block;height:3px;background:var(--brand)}
+  .topo-in{max-width:1240px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:16px}
+  .lockup{display:flex;align-items:center;gap:13px}
+  .lockup img{height:38px;display:block}
+  .lockup .sep{width:1px;height:30px;background:var(--line-2)}
+  .lockup .tit{font-size:16px;font-weight:800;letter-spacing:-.2px;line-height:1.1}
+  .lockup .sub{font-size:12px;color:var(--ink-3);font-weight:500}
+  .topo .stat{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);font-weight:600}
+  .topo .stat b{font-size:16px;color:var(--brand);font-weight:800}
+  .topo .stat .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px var(--brand-050)}
 
-  /* Barra de ferramentas */
-  .ferramentas{background:var(--branco);border-bottom:1px solid var(--linha);position:sticky;top:0;z-index:20}
-  .ferramentas-inner{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .busca{flex:1;min-width:220px;position:relative}
-  .busca input{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--linha);border-radius:999px;font-size:15px;outline:none;background:var(--fundo)}
-  .busca input:focus{border-color:var(--vermelho);background:#fff}
-  .busca svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--tinta-fraca)}
-  .btn{border:1px solid var(--linha);background:#fff;color:var(--tinta);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
-  .btn:hover{border-color:var(--tinta-fraca)}
-  .btn.primario{background:var(--vermelho);border-color:var(--vermelho);color:#fff}
-  .btn.primario:hover{background:var(--vermelho-esc);border-color:var(--vermelho-esc)}
+  /* ===== Hero / busca ===== */
+  .hero{max-width:1240px;margin:0 auto;padding:26px 22px 6px}
+  .hero h2{font-size:26px;font-weight:800;letter-spacing:-.6px;margin:0 0 4px}
+  .hero p{margin:0 0 18px;color:var(--ink-2);font-size:14.5px}
+  .busca{position:relative;max-width:640px}
+  .busca input{width:100%;padding:15px 46px 15px 48px;border:1.5px solid var(--line-2);border-radius:999px;font-size:15.5px;font-family:inherit;outline:none;background:#fff;box-shadow:var(--sh-sm);transition:.16s}
+  .busca input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-050)}
+  .busca .ico{position:absolute;left:17px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+  .busca .limpar{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;color:var(--ink-3);font-size:18px;display:none;align-items:center;justify-content:center}
+  .busca .limpar:hover{background:var(--bg);color:var(--ink)}
+  .busca.tem .limpar{display:flex}
 
-  /* Layout */
-  .painel{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:270px 1fr;gap:20px;align-items:start}
-  @media(max-width:820px){.painel{grid-template-columns:1fr}}
+  /* ===== Layout ===== */
+  .wrap{max-width:1240px;margin:0 auto;padding:22px;display:grid;grid-template-columns:var(--sidebar) 1fr;gap:26px;align-items:start}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr;gap:16px}}
 
-  /* Menu de areas */
-  aside.menu{background:#fff;border:1px solid var(--linha);border-radius:var(--raio);padding:8px;position:sticky;top:74px}
-  @media(max-width:820px){aside.menu{position:static}}
-  .menu h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--tinta-fraca);margin:10px 12px 6px}
-  .area-item>button{width:100%;border:none;background:none;text-align:left;padding:10px 12px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--tinta)}
-  .area-item>button:hover{background:var(--fundo)}
-  .area-item>button.ativo{background:var(--vermelho);color:#fff}
-  .area-item .qtd{margin-left:auto;font-size:12px;font-weight:700;background:var(--fundo);color:var(--tinta-suave);border-radius:999px;padding:1px 9px}
-  .area-item>button.ativo .qtd{background:rgba(255,255,255,.25);color:#fff}
-  .setores{padding:2px 0 8px 12px;margin:0;list-style:none}
-  .setores li{font-size:13px;color:var(--tinta-suave);padding:5px 12px;border-radius:6px;cursor:pointer}
-  .setores li:hover{background:var(--fundo);color:var(--tinta)}
-  .setores li.ativo{color:var(--vermelho);font-weight:600}
+  /* ===== Menu de areas ===== */
+  aside.menu{position:sticky;top:96px}
+  @media(max-width:900px){aside.menu{position:static}}
+  .menu .rot{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--ink-3);font-weight:700;margin:2px 0 10px 6px}
+  .menu-lista{display:flex;flex-direction:column;gap:2px}
+  @media(max-width:900px){
+    .menu .rot{display:none}
+    .menu-lista{flex-direction:row;overflow-x:auto;gap:8px;padding:2px 2px 8px;scrollbar-width:none}
+    .menu-lista::-webkit-scrollbar{display:none}
+    .setores{display:none!important}
+  }
+  .area-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:11px;font-size:14px;font-weight:600;color:var(--ink);text-align:left;transition:.13s;white-space:nowrap}
+  .area-btn:hover{background:#fff;box-shadow:var(--sh-sm)}
+  .area-btn.on{background:var(--ink);color:#fff}
+  .area-btn .pip{width:9px;height:9px;border-radius:50%;flex:none;background:var(--ac,#888)}
+  .area-btn.on .pip{box-shadow:0 0 0 3px rgba(255,255,255,.22)}
+  .area-btn .n{flex:1;overflow:hidden;text-overflow:ellipsis}
+  .area-btn .q{font-size:12px;font-weight:700;color:var(--ink-3);background:var(--bg);border-radius:999px;padding:1px 9px}
+  .area-btn:hover .q{background:var(--line)}
+  .area-btn.on .q{background:rgba(255,255,255,.18);color:#fff}
+  .setores{list-style:none;margin:3px 0 8px;padding:2px 0 2px 30px;display:flex;flex-direction:column;gap:1px}
+  .setores li{font-size:13px;color:var(--ink-2);padding:6px 12px;border-radius:8px;cursor:pointer;transition:.12s}
+  .setores li:hover{background:#fff;color:var(--ink)}
+  .setores li.on{color:var(--brand);font-weight:700;background:var(--brand-050)}
 
-  /* Lista de cargos */
-  .conteudo{min-height:60vh}
-  .resumo{font-size:13px;color:var(--tinta-suave);margin:2px 2px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .chip{background:#fff;border:1px solid var(--linha);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
-  .chip button{border:none;background:none;color:var(--tinta-fraca);font-weight:700;padding:0;line-height:1}
-  .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-  .cartao{background:#fff;border:1px solid var(--linha);border-radius:var(--raio);padding:16px;text-align:left;transition:.12s;display:flex;flex-direction:column;gap:8px}
-  .cartao:hover{border-color:var(--vermelho);box-shadow:var(--sombra);transform:translateY(-1px)}
-  .cartao .cod{font-size:11px;font-weight:700;color:var(--tinta-fraca);letter-spacing:.5px}
-  .cartao .tit{font-size:16px;font-weight:700;color:var(--tinta);margin:0}
-  .cartao .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}
-  .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--fundo);color:var(--tinta-suave)}
-  .tag.area{background:#fdeaea;color:var(--vermelho-esc)}
-  .vazio{text-align:center;padding:60px 20px;color:var(--tinta-fraca)}
+  /* ===== Resultados ===== */
+  .barra{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 2px 16px}
+  .barra .cont{font-size:14px;color:var(--ink-2);font-weight:600}
+  .barra .cont b{color:var(--ink);font-weight:800}
+  .barra .flex{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line-2);border-radius:999px;padding:5px 6px 5px 12px;font-size:13px;font-weight:600;box-shadow:var(--sh-sm)}
+  .chip button{width:20px;height:20px;border-radius:50%;color:var(--ink-3);font-size:15px;display:flex;align-items:center;justify-content:center}
+  .chip button:hover{background:var(--bg);color:var(--brand)}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;font-size:13.5px;font-weight:700;transition:.14s;white-space:nowrap}
+  .btn.ghost{background:#fff;border:1px solid var(--line-2);color:var(--ink);box-shadow:var(--sh-sm)}
+  .btn.ghost:hover{border-color:var(--ink-3)}
+  .btn.solid{background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(233,36,41,.28)}
+  .btn.solid:hover{background:var(--brand-600)}
 
-  /* Detalhe (modal) */
-  .overlay{position:fixed;inset:0;background:rgba(20,20,22,.5);display:none;z-index:40;padding:20px;overflow:auto}
-  .overlay.aberto{display:block}
-  .modal{max-width:860px;margin:20px auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
-  .modal-topo{background:var(--vermelho);color:#fff;padding:20px 24px;display:flex;align-items:flex-start;gap:16px}
-  .modal-topo .cod{font-size:12px;font-weight:700;opacity:.85;letter-spacing:.5px}
-  .modal-topo h2{margin:2px 0 8px;font-size:23px;font-weight:700}
-  .modal-topo .badges{display:flex;flex-wrap:wrap;gap:6px}
-  .modal-topo .badge{background:rgba(255,255,255,.2);border-radius:999px;padding:3px 11px;font-size:12px;font-weight:600}
-  .modal-topo .fechar{margin-left:auto;background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;flex:none}
-  .modal-topo .fechar:hover{background:rgba(255,255,255,.3)}
-  .modal-acoes{display:flex;gap:10px;padding:14px 24px;border-bottom:1px solid var(--linha);flex-wrap:wrap}
-  .modal-corpo{padding:8px 24px 28px}
-  .secao{padding:18px 0;border-bottom:1px solid var(--linha)}
-  .secao:last-child{border-bottom:none}
-  .secao h3{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--vermelho);margin:0 0 12px}
-  .campos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:640px){.campos{grid-template-columns:1fr}}
-  .campo .rot{font-size:12px;font-weight:700;color:var(--tinta-fraca);margin-bottom:2px}
-  .campo .val{font-size:15px;color:var(--tinta);white-space:pre-wrap}
-  .campo.largo{grid-column:1/-1}
-  .lista{margin:0;padding-left:20px}
-  .lista li{margin-bottom:6px}
-  .adefinir{color:var(--definir);font-style:italic;font-size:14px}
+  /* ===== Grade de cargos ===== */
+  .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:15px}
+  .card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 18px 16px;text-align:left;cursor:pointer;transition:.16s;overflow:hidden;display:flex;flex-direction:column;gap:10px;min-height:132px;animation:sobe .28s ease both}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ac,var(--brand));opacity:.9;transform:translateX(-4px);transition:.16s}
+  .card:hover{border-color:transparent;box-shadow:var(--sh-md);transform:translateY(-2px)}
+  .card:hover::before{transform:translateX(0)}
+  .card .cod{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--ink-3)}
+  .card .tt{font-size:15.5px;font-weight:800;letter-spacing:-.2px;color:var(--ink);text-transform:uppercase;line-height:1.28}
+  .card .foot{margin-top:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bg);color:var(--ink-2)}
+  .tag .pip{width:7px;height:7px;border-radius:50%;background:var(--ac,#888)}
+  .card .seta{position:absolute;right:15px;bottom:15px;color:var(--ink-3);opacity:0;transform:translateX(-4px);transition:.16s}
+  .card:hover .seta{opacity:1;transform:translateX(0);color:var(--brand)}
+  @keyframes sobe{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .nada{text-align:center;padding:70px 20px;color:var(--ink-3)}
+  .nada svg{color:var(--line-2);margin-bottom:12px}
+  .nada b{display:block;color:var(--ink-2);font-size:16px;margin-bottom:4px}
 
-  footer{max-width:1200px;margin:0 auto;padding:24px 20px;color:var(--tinta-fraca);font-size:12px;text-align:center}
+  /* ===== Drawer (detalhe) ===== */
+  .backdrop{position:fixed;inset:0;background:rgba(15,15,20,.45);opacity:0;visibility:hidden;transition:.22s;z-index:40}
+  .backdrop.open{opacity:1;visibility:visible}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(760px,100%);background:#fff;box-shadow:var(--sh-lg);transform:translateX(102%);transition:transform .32s cubic-bezier(.4,0,.15,1);z-index:41;display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .d-top{background:var(--brand);color:#fff;padding:22px 26px 20px;flex:none}
+  .d-top .cod{font-size:12px;font-weight:700;letter-spacing:.6px;opacity:.9}
+  .d-top h2{margin:4px 0 12px;font-size:25px;font-weight:800;letter-spacing:-.5px;text-transform:uppercase;line-height:1.15}
+  .d-top .badges{display:flex;flex-wrap:wrap;gap:7px}
+  .d-top .bdg{background:rgba(255,255,255,.18);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .d-top .bdg .pip{width:7px;height:7px;border-radius:50%;background:#fff}
+  .d-top .x{position:absolute;top:18px;right:20px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;transition:.14s}
+  .d-top .x:hover{background:rgba(255,255,255,.32)}
+  .d-acts{display:flex;gap:10px;padding:14px 26px;border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
+  .d-body{overflow-y:auto;padding:6px 26px 34px}
+  .sec{padding:20px 0;border-bottom:1px solid var(--line)}
+  .sec:last-child{border-bottom:none}
+  .sec h3{display:flex;align-items:center;gap:8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--brand);font-weight:800;margin:0 0 14px}
+  .sec h3::after{content:"";flex:1;height:1px;background:var(--line)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr}}
+  .fld .lb{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+  .fld .vl{font-size:15px;color:var(--ink);white-space:pre-wrap}
+  .fld.wide{grid-column:1/-1}
+  .lista{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  .lista li{position:relative;padding-left:22px;font-size:14.5px;color:var(--ink)}
+  .lista li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;border-radius:2px;background:var(--brand);transform:rotate(45deg)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .adef{color:var(--definir);font-style:italic;font-size:14px;opacity:.9}
+
+  footer{max-width:1240px;margin:0 auto;padding:26px 22px 40px;color:var(--ink-3);font-size:12.5px;text-align:center;border-top:1px solid var(--line);margin-top:14px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:600;box-shadow:var(--sh-lg);opacity:0;transition:.24s;z-index:50;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
 <header class="topo">
-  <div class="topo-inner">
-    <span class="logo"><img src="assets/logo-wessel.png" alt="Wessel"></span>
-    <div>
-      <h1>Wessel Carreiras</h1>
-      <p>Portal de descritivos de cargos</p>
+  <div class="topo-in">
+    <div class="lockup">
+      <img src="assets/logo-wessel.png" alt="Wessel">
+      <span class="sep"></span>
+      <div>
+        <div class="tit">Wessel Carreiras</div>
+        <div class="sub">Descritivos de cargos</div>
+      </div>
     </div>
-    <div class="cont"><b id="contTotal">0</b>cargos cadastrados</div>
+    <div class="stat"><span class="dot"></span><b id="stTotal">0</b> cargos</div>
   </div>
 </header>
 
-<div class="ferramentas">
-  <div class="ferramentas-inner">
-    <div class="busca">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input id="busca" type="search" placeholder="Buscar por cargo, codigo, setor ou atividade" autocomplete="off">
-    </div>
-    <button class="btn primario" id="btnExportaBase" title="Baixar toda a base em Excel">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      Exportar base completa
-    </button>
+<section class="hero">
+  <h2>Encontre um cargo</h2>
+  <p>Navegue por area, filtre por setor ou busque pelo nome, codigo ou atividade.</p>
+  <div class="busca" id="buscaWrap">
+    <span class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"></circle><line x1="21" y1="21" x2="16.8" y2="16.8"></line></svg></span>
+    <input id="busca" type="search" placeholder="Buscar cargo, codigo, setor ou atividade" autocomplete="off" spellcheck="false">
+    <button class="limpar" id="btnLimpaBusca" aria-label="Limpar busca">&times;</button>
   </div>
-</div>
+</section>
 
-<div class="painel">
+<div class="wrap">
   <aside class="menu">
-    <h2>Areas</h2>
-    <div id="menuAreas"></div>
+    <div class="rot">Areas</div>
+    <div class="menu-lista" id="menu"></div>
   </aside>
 
-  <main class="conteudo">
-    <div class="resumo" id="resumo"></div>
+  <main>
+    <div class="barra">
+      <span class="cont" id="cont"></span>
+      <span id="chips"></span>
+      <span class="flex"></span>
+      <button class="btn solid" id="btnBase">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Exportar base
+      </button>
+    </div>
     <div class="grade" id="grade"></div>
-    <div class="vazio" id="vazio" style="display:none">Nenhum cargo encontrado com esses filtros.</div>
+    <div class="nada" id="nada" style="display:none">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7.5"></circle><line x1="21" y1="21" x2="16.8" y2="16.8"></line></svg>
+      <b>Nenhum cargo encontrado</b>
+      Ajuste a busca ou os filtros de area e setor.
+    </div>
   </main>
 </div>
 
 <footer id="rodape"></footer>
 
-<div class="overlay" id="overlay">
-  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
-</div>
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Descritivo do cargo"></aside>
+<div class="toast" id="toast"></div>
 
 <script>
 const D = window.WESSEL_DATA || {cargos:[], areas:{}, totalCargos:0};
-const AD = '<span class="adefinir">a definir</span>';
+const AD = '<span class="adef">a definir</span>';
+const CORES = {
+  "Produção":"#E92429","Logística":"#2563EB","Comercial":"#059669",
+  "Administrativo/Financeiro":"#7C3AED","Manutenção":"#EA580C","Qualidade":"#0891B2",
+  "PCP":"#CA8A04","RH":"#DB2777","TI":"#4F46E5","Diretoria":"#475569"
+};
+const corArea = a => CORES[a] || "#7a7a85";
 const estado = {area:null, setor:null, busca:""};
 
-const el = id => document.getElementById(id);
-const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-function temValor(v){ return Array.isArray(v) ? v.length>0 : (v!=null && String(v).trim()!==""); }
-function texto(v){ return temValor(v) ? esc(v) : AD; }
-function listaHtml(arr){
-  if(!temValor(arr)) return AD;
-  return '<ul class="lista">'+arr.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>';
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fold = s => String(s==null?"":s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const tem = v => Array.isArray(v) ? v.length>0 : (v!=null && String(v).trim()!=="");
+const txt = v => tem(v) ? esc(v) : AD;
+const areasDo = c => (c.area||"").split(";").map(s=>s.trim()).filter(Boolean);
+function listaHtml(arr){ return tem(arr) ? '<ul class="lista">'+arr.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>' : AD; }
+function pillsHtml(arr){ return tem(arr) ? '<div class="pills">'+arr.map(i=>'<span class="pill">'+esc(i)+'</span>').join('')+'</div>' : AD; }
+function respLista(c){
+  let r = c.responsabilidades;
+  if(!Array.isArray(r)) r = String(r||"").split(/\n|•/).map(s=>s.trim()).filter(Boolean);
+  return listaHtml(r);
 }
 
-/* ------- Menu de areas ------- */
+/* ===== Menu ===== */
+function qtdArea(area){ return D.cargos.filter(c=>areasDo(c).includes(area)).length; }
 function montaMenu(){
-  const c = el('menuAreas');
-  let html = `<div class="area-item"><button class="${estado.area===null?'ativo':''}" data-area="">Todas as areas<span class="qtd">${D.totalCargos}</span></button></div>`;
+  const box = $('menu');
+  let h = `<button class="area-btn ${estado.area===null?'on':''}" data-area=""><span class="pip" style="--ac:var(--brand)"></span><span class="n">Todas as areas</span><span class="q">${D.totalCargos}</span></button>`;
   for(const area of Object.keys(D.areas)){
-    const qtd = D.cargos.filter(x => (x.area||"").split(";").map(s=>s.trim()).includes(area)).length;
-    const aberta = estado.area===area;
-    html += `<div class="area-item">
-      <button class="${aberta?'ativo':''}" data-area="${esc(area)}">${esc(area)}<span class="qtd">${qtd}</span></button>`;
-    if(aberta){
-      html += '<ul class="setores">';
-      for(const s of D.areas[area]){
-        html += `<li class="${estado.setor===s?'ativo':''}" data-setor="${esc(s)}">${esc(s)}</li>`;
-      }
-      html += '</ul>';
+    const on = estado.area===area;
+    h += `<div><button class="area-btn ${on?'on':''}" data-area="${esc(area)}" style="--ac:${corArea(area)}">
+      <span class="pip"></span><span class="n">${esc(area)}</span><span class="q">${qtdArea(area)}</span></button>`;
+    if(on){
+      h += '<ul class="setores">';
+      for(const s of D.areas[area]) h += `<li class="${estado.setor===s?'on':''}" data-setor="${esc(s)}">${esc(s)}</li>`;
+      h += '</ul>';
     }
-    html += '</div>';
+    h += '</div>';
   }
-  c.innerHTML = html;
-  c.querySelectorAll('[data-area]').forEach(b=>b.onclick=()=>{
-    const a = b.dataset.area || null;
-    estado.area = (estado.area===a)?null:a; estado.setor=null; render();
+  box.innerHTML = h;
+  box.querySelectorAll('[data-area]').forEach(b=>b.onclick=()=>{
+    const a=b.dataset.area||null; estado.area=(estado.area===a)?null:a; estado.setor=null; render();
   });
-  c.querySelectorAll('[data-setor]').forEach(b=>b.onclick=()=>{
-    estado.setor = (estado.setor===b.dataset.setor)?null:b.dataset.setor; render();
+  box.querySelectorAll('[data-setor]').forEach(b=>b.onclick=()=>{
+    estado.setor=(estado.setor===b.dataset.setor)?null:b.dataset.setor; render();
   });
 }
 
-/* ------- Filtro ------- */
+/* ===== Filtro ===== */
 function filtra(){
-  const q = estado.busca.trim().toLowerCase();
+  const q = fold(estado.busca.trim());
   return D.cargos.filter(c=>{
-    if(estado.area && !(c.area||"").split(";").map(s=>s.trim()).includes(estado.area)) return false;
+    if(estado.area && !areasDo(c).includes(estado.area)) return false;
     if(estado.setor && !(c.setores||[]).includes(estado.setor)) return false;
     if(q){
-      const alvo = [c.titulo,c.codigo,c.area,(c.setores||[]).join(" "),c.responsabilidades,c.missao].join(" ").toLowerCase();
+      const alvo = fold([c.titulo,c.codigo,c.area,(c.setores||[]).join(" "),c.responsabilidades,c.missao,(c.comp_comportamentais||[]).join(" ")].join(" "));
       if(!alvo.includes(q)) return false;
     }
     return true;
   });
 }
 
-/* ------- Render principal ------- */
+/* ===== Render ===== */
 function render(){
   montaMenu();
   const lista = filtra();
-  const grade = el('grade'), vazio = el('vazio');
-  const chips = [];
-  if(estado.area) chips.push(`<span class="chip">Area: ${esc(estado.area)} <button data-limpa="area">&times;</button></span>`);
-  if(estado.setor) chips.push(`<span class="chip">Setor: ${esc(estado.setor)} <button data-limpa="setor">&times;</button></span>`);
-  if(estado.busca) chips.push(`<span class="chip">Busca: ${esc(estado.busca)} <button data-limpa="busca">&times;</button></span>`);
-  el('resumo').innerHTML = `<span><b>${lista.length}</b> cargo(s)</span>` + chips.join("");
-  el('resumo').querySelectorAll('[data-limpa]').forEach(b=>b.onclick=()=>{
-    const k=b.dataset.limpa; if(k==='busca'){estado.busca='';el('busca').value='';} else estado[k]=null;
+  const chips=[];
+  if(estado.area) chips.push(`<span class="chip"><span class="pip" style="width:8px;height:8px;border-radius:50%;background:${corArea(estado.area)}"></span>${esc(estado.area)} <button data-l="area">&times;</button></span>`);
+  if(estado.setor) chips.push(`<span class="chip">${esc(estado.setor)} <button data-l="setor">&times;</button></span>`);
+  if(estado.busca) chips.push(`<span class="chip">"${esc(estado.busca)}" <button data-l="busca">&times;</button></span>`);
+  $('cont').innerHTML = `<b>${lista.length}</b> ${lista.length===1?'cargo':'cargos'}`;
+  $('chips').innerHTML = chips.join("");
+  $('chips').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.l; if(k==='busca'){estado.busca='';$('busca').value='';$('buscaWrap').classList.remove('tem');} else estado[k]=null;
     if(k==='area') estado.setor=null; render();
   });
 
-  if(lista.length===0){ grade.innerHTML=""; vazio.style.display="block"; return; }
-  vazio.style.display="none";
-  grade.innerHTML = lista.map((c,i)=>`
-    <button class="cartao" data-cod="${esc(c.codigo)}">
-      <span class="cod">${texto(c.codigo)}</span>
-      <h3 class="tit">${esc(c.titulo)||AD}</h3>
-      <div class="meta">
-        ${(c.area||"").split(";").filter(a=>a.trim()).map(a=>`<span class="tag area">${esc(a.trim())}</span>`).join("")}
-        ${temValor(c.nivel)?`<span class="tag">${esc(c.nivel)}</span>`:""}
-      </div>
-    </button>`).join("");
-  grade.querySelectorAll('.cartao').forEach(b=>b.onclick=()=>abre(b.dataset.cod));
+  const grade=$('grade'), nada=$('nada');
+  if(!lista.length){ grade.innerHTML=""; nada.style.display="block"; return; }
+  nada.style.display="none";
+  grade.innerHTML = lista.map((c,i)=>{
+    const ac = corArea(areasDo(c)[0]||"");
+    const tags = areasDo(c).map(a=>`<span class="tag" style="--ac:${corArea(a)}"><span class="pip"></span>${esc(a)}</span>`).join("");
+    return `<button class="card" style="--ac:${ac};animation-delay:${Math.min(i*18,260)}ms" data-cod="${esc(c.codigo)}">
+      <span class="cod">${txt(c.codigo)}</span>
+      <span class="tt">${esc(c.titulo)||AD}</span>
+      <span class="foot">${tags}${tem(c.nivel)?`<span class="tag">${esc(c.nivel)}</span>`:""}</span>
+      <span class="seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+    </button>`;
+  }).join("");
+  grade.querySelectorAll('.card').forEach(b=>b.onclick=()=>abre(b.dataset.cod));
 }
 
-/* ------- Detalhe ------- */
-function achaCargo(cod){ return D.cargos.find(c=>String(c.codigo)===String(cod)); }
-
+/* ===== Drawer ===== */
+const achaCargo = cod => D.cargos.find(c=>String(c.codigo)===String(cod));
 function abre(cod){
   const c = achaCargo(cod); if(!c) return;
-  const badges = [];
-  if(temValor(c.area)) c.area.split(";").forEach(a=>a.trim()&&badges.push(`<span class="badge">${esc(a.trim())}</span>`));
-  if(temValor(c.nivel)) badges.push(`<span class="badge">Nivel: ${esc(c.nivel)}</span>`);
-  if(temValor(c.status)) badges.push(`<span class="badge">${esc(c.status)}</span>`);
-
-  el('modal').innerHTML = `
-    <div class="modal-topo">
-      <div>
-        <div class="cod">${texto(c.codigo)}</div>
-        <h2>${esc(c.titulo)||'Cargo'}</h2>
-        <div class="badges">${badges.join("")}</div>
-      </div>
-      <button class="fechar" id="btnFecha" aria-label="Fechar">&times;</button>
+  const badges = areasDo(c).map(a=>`<span class="bdg"><span class="pip" style="background:${corArea(a)}"></span>${esc(a)}</span>`);
+  if(tem(c.nivel)) badges.push(`<span class="bdg">Nivel: ${esc(c.nivel)}</span>`);
+  if(tem(c.status)) badges.push(`<span class="bdg">${esc(c.status)}</span>`);
+  $('drawer').innerHTML = `
+    <div class="d-top">
+      <button class="x" id="dX" aria-label="Fechar">&times;</button>
+      <div class="cod">${txt(c.codigo)}</div>
+      <h2>${esc(c.titulo)||'Cargo'}</h2>
+      <div class="badges">${badges.join("")}</div>
     </div>
-    <div class="modal-acoes">
-      <button class="btn primario" id="btnExportaCargo">
+    <div class="d-acts">
+      <button class="btn solid" id="dExp">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Exportar este cargo
       </button>
     </div>
-    <div class="modal-corpo">
-      <div class="secao">
-        <h3>Identificacao</h3>
-        <div class="campos">
-          <div class="campo"><div class="rot">Area</div><div class="val">${texto(c.area)}</div></div>
-          <div class="campo"><div class="rot">Setor(es) aplicavel(is)</div><div class="val">${temValor(c.setores)?esc(c.setores.join("; ")):AD}</div></div>
-          <div class="campo"><div class="rot">Nivel / Grau</div><div class="val">${texto(c.nivel)}</div></div>
-          <div class="campo"><div class="rot">Cargo superior imediato</div><div class="val">${texto(c.superior)}</div></div>
-          <div class="campo largo"><div class="rot">Subordinados diretos / indiretos</div><div class="val">${temValor(c.subordinados)?esc((c.subordinados||[]).join("; ")):AD}</div></div>
+    <div class="d-body">
+      <div class="sec"><h3>Identificacao</h3>
+        <div class="grid2">
+          <div class="fld"><div class="lb">Area</div><div class="vl">${txt(c.area)}</div></div>
+          <div class="fld"><div class="lb">Setor(es)</div><div class="vl">${tem(c.setores)?esc(c.setores.join(", ")):AD}</div></div>
+          <div class="fld"><div class="lb">Nivel / Grau</div><div class="vl">${txt(c.nivel)}</div></div>
+          <div class="fld"><div class="lb">Cargo superior imediato</div><div class="vl">${txt(c.superior)}</div></div>
+          <div class="fld wide"><div class="lb">Subordinados diretos / indiretos</div><div class="vl">${tem(c.subordinados)?esc((c.subordinados||[]).join(", ")):AD}</div></div>
         </div>
       </div>
-      <div class="secao">
-        <h3>Missao do cargo</h3>
-        <div class="campo"><div class="val">${texto(c.missao)}</div></div>
-      </div>
-      <div class="secao">
-        <h3>Responsabilidades e atividades</h3>
-        ${listaHtml(c.responsabilidades && !Array.isArray(c.responsabilidades) ? String(c.responsabilidades).split(/\n|•/).map(s=>s.trim()).filter(Boolean) : c.responsabilidades)}
-      </div>
-      <div class="secao">
-        <h3>Requisitos e competencias</h3>
-        <div class="campos">
-          <div class="campo"><div class="rot">Escolaridade</div><div class="val">${texto(c.escolaridade)}</div></div>
-          <div class="campo"><div class="rot">Experiencia minima</div><div class="val">${texto(c.experiencia)}</div></div>
-          <div class="campo largo"><div class="rot">Competencias comportamentais</div><div class="val">${listaHtml(c.comp_comportamentais)}</div></div>
-          <div class="campo largo"><div class="rot">Competencias tecnicas</div><div class="val">${listaHtml(c.comp_tecnicas)}</div></div>
-          <div class="campo largo"><div class="rot">Treinamentos / NR obrigatorios</div><div class="val">${listaHtml(c.treinamentos)}</div></div>
-          <div class="campo"><div class="rot">Requisitos fisicos / ambiente</div><div class="val">${texto(c.requisitos_fisicos)}</div></div>
-          <div class="campo"><div class="rot">Viagens / CNH / disponibilidade</div><div class="val">${texto(c.viagens)}</div></div>
+      <div class="sec"><h3>Missao do cargo</h3><div class="fld"><div class="vl">${txt(c.missao)}</div></div></div>
+      <div class="sec"><h3>Responsabilidades e atividades</h3>${respLista(c)}</div>
+      <div class="sec"><h3>Requisitos e competencias</h3>
+        <div class="grid2">
+          <div class="fld"><div class="lb">Escolaridade</div><div class="vl">${txt(c.escolaridade)}</div></div>
+          <div class="fld"><div class="lb">Experiencia minima</div><div class="vl">${txt(c.experiencia)}</div></div>
+          <div class="fld wide"><div class="lb">Competencias comportamentais</div><div class="vl">${pillsHtml(c.comp_comportamentais)}</div></div>
+          <div class="fld wide"><div class="lb">Competencias tecnicas</div><div class="vl">${pillsHtml(c.comp_tecnicas)}</div></div>
+          <div class="fld wide"><div class="lb">Treinamentos / NR obrigatorios</div><div class="vl">${pillsHtml(c.treinamentos)}</div></div>
+          <div class="fld"><div class="lb">Requisitos fisicos / ambiente</div><div class="vl">${txt(c.requisitos_fisicos)}</div></div>
+          <div class="fld"><div class="lb">Viagens / CNH / disponibilidade</div><div class="vl">${txt(c.viagens)}</div></div>
         </div>
       </div>
-      <div class="secao">
-        <h3>Outras observacoes</h3>
-        <div class="campo"><div class="val">${texto(c.outras)}</div></div>
-      </div>
-      <div class="secao">
-        <h3>Controle</h3>
-        <div class="campos">
-          <div class="campo"><div class="rot">Elaborado por</div><div class="val">${texto(c.elaborado_por)}</div></div>
-          <div class="campo"><div class="rot">Data de criacao</div><div class="val">${texto(c.data_criacao)}</div></div>
-          <div class="campo"><div class="rot">Versao</div><div class="val">${texto(c.versao)}</div></div>
-          <div class="campo"><div class="rot">Validado por</div><div class="val">${texto(c.validado_por)}</div></div>
-          <div class="campo"><div class="rot">Status</div><div class="val">${texto(c.status)}</div></div>
-          <div class="campo"><div class="rot">Ultima atualizacao</div><div class="val">${texto(c.atualizacao)}</div></div>
-          <div class="campo largo"><div class="rot">Abas de origem (arquivo antigo)</div><div class="val">${temValor(c.abas_origem)?esc((c.abas_origem||[]).join("; ")):AD}</div></div>
+      <div class="sec"><h3>Outras observacoes</h3><div class="fld"><div class="vl">${txt(c.outras)}</div></div></div>
+      <div class="sec"><h3>Controle</h3>
+        <div class="grid2">
+          <div class="fld"><div class="lb">Elaborado por</div><div class="vl">${txt(c.elaborado_por)}</div></div>
+          <div class="fld"><div class="lb">Data de criacao</div><div class="vl">${txt(c.data_criacao)}</div></div>
+          <div class="fld"><div class="lb">Versao</div><div class="vl">${txt(c.versao)}</div></div>
+          <div class="fld"><div class="lb">Validado por</div><div class="vl">${txt(c.validado_por)}</div></div>
+          <div class="fld"><div class="lb">Status</div><div class="vl">${txt(c.status)}</div></div>
+          <div class="fld"><div class="lb">Ultima atualizacao</div><div class="vl">${txt(c.atualizacao)}</div></div>
+          <div class="fld wide"><div class="lb">Abas de origem (arquivo antigo)</div><div class="vl">${tem(c.abas_origem)?esc((c.abas_origem||[]).join(", ")):AD}</div></div>
         </div>
       </div>
     </div>`;
-  el('btnFecha').onclick = fecha;
-  el('btnExportaCargo').onclick = ()=>exportaCargo(c);
-  el('overlay').classList.add('aberto');
+  $('dX').onclick = fecha;
+  $('dExp').onclick = ()=>exportaCargo(c);
+  $('backdrop').classList.add('open');
+  $('drawer').classList.add('open');
   document.body.style.overflow='hidden';
+  $('drawer').querySelector('.d-body').scrollTop=0;
 }
-function fecha(){ el('overlay').classList.remove('aberto'); document.body.style.overflow=''; }
-el('overlay').onclick = e => { if(e.target===el('overlay')) fecha(); };
-document.addEventListener('keydown', e => { if(e.key==='Escape') fecha(); });
+function fecha(){ $('backdrop').classList.remove('open'); $('drawer').classList.remove('open'); document.body.style.overflow=''; }
+$('backdrop').onclick = fecha;
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') fecha(); });
 
-/* ------- Exportacao (SheetJS) ------- */
-const CAMPOS_EXPORT = [
-  ["codigo","Codigo do Cargo"],["titulo","Titulo do Cargo"],["nivel","Nivel/Grau"],
+/* ===== Exportacao Excel formatada (ExcelJS) ===== */
+const CAMPOS = [
+  ["codigo","Codigo do Cargo"],["titulo","Titulo do Cargo"],["nivel","Nivel / Grau"],
   ["area","Area"],["setores","Setor(es) Aplicavel(is)"],["superior","Cargo Superior Imediato"],
-  ["subordinados","Subordinados Diretos/Indiretos"],["missao","Missao do Cargo"],
+  ["subordinados","Subordinados Diretos / Indiretos"],["missao","Missao do Cargo"],
   ["responsabilidades","Responsabilidades e Atividades"],["escolaridade","Escolaridade"],
   ["experiencia","Experiencia Minima"],["comp_comportamentais","Competencias Comportamentais"],
-  ["comp_tecnicas","Competencias Tecnicas"],["treinamentos","Treinamentos/NR Obrigatorios"],
-  ["requisitos_fisicos","Requisitos Fisicos/Ambiente"],["viagens","Viagens/CNH/Disponibilidade"],
+  ["comp_tecnicas","Competencias Tecnicas"],["treinamentos","Treinamentos / NR Obrigatorios"],
+  ["requisitos_fisicos","Requisitos Fisicos / Ambiente"],["viagens","Viagens / CNH / Disponibilidade"],
   ["outras","Outras Observacoes"],["abas_origem","Abas de Origem"],["elaborado_por","Elaborado por"],
   ["data_criacao","Data de Criacao"],["versao","Versao"],["validado_por","Validado por"],
   ["status","Status"],["atualizacao","Ultima Atualizacao"],
 ];
-function valorPlano(v){
-  if(Array.isArray(v)) return v.join("; ");
+const RED="FFE92429", RED_LT="FFFDECEC", CINZA="FFF3F3F5", LINHA_C="FFE4E4E9", TINTA="FF161619", ZEBRA="FFFAFAFB";
+function plano(v){
+  if(Array.isArray(v)) return v.join("\n");
   return (v==null||String(v).trim()==="") ? "a definir" : String(v);
 }
-function nomeArquivo(s){ return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zA-Z0-9]+/g,"_").replace(/^_|_$/g,""); }
+function ehVazio(v){ return !(Array.isArray(v)?v.length:(v!=null&&String(v).trim()!=="")); }
+const bordaFina = {top:{style:"thin",color:{argb:LINHA_C}},left:{style:"thin",color:{argb:LINHA_C}},bottom:{style:"thin",color:{argb:LINHA_C}},right:{style:"thin",color:{argb:LINHA_C}}};
+function nomeArq(s){ return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zA-Z0-9]+/g,"_").replace(/^_|_$/g,""); }
 
-function exportaCargo(c){
-  const linhas = [["Campo","Conteudo"]];
-  CAMPOS_EXPORT.forEach(([k,rot])=>linhas.push([rot, valorPlano(c[k])]));
-  const ws = XLSX.utils.aoa_to_sheet(linhas);
-  ws['!cols']=[{wch:32},{wch:80}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Descritivo");
-  XLSX.writeFile(wb, "Cargo_"+nomeArquivo(c.titulo||c.codigo)+".xlsx");
+async function baixa(wb, nome){
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download=nome; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+  toast("Excel gerado: "+nome);
 }
-function exportaBase(){
-  const cab = CAMPOS_EXPORT.map(x=>x[1]);
-  const linhas = [cab];
-  filtra().forEach(c=>linhas.push(CAMPOS_EXPORT.map(([k])=>valorPlano(c[k]))));
-  const ws = XLSX.utils.aoa_to_sheet(linhas);
-  ws['!cols']=CAMPOS_EXPORT.map(()=>({wch:22}));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Base de Cargos");
-  XLSX.writeFile(wb, "Base_de_Cargos_Wessel.xlsx");
-}
-el('btnExportaBase').onclick = exportaBase;
 
-/* ------- Inicio ------- */
-el('contTotal').textContent = D.totalCargos;
-el('rodape').innerHTML = `Base gerada em ${esc(D.geradoEm||"")}. Fonte oficial: planilha em /dados. Uso interno Wessel.`;
-let t; el('busca').addEventListener('input', e=>{ clearTimeout(t); t=setTimeout(()=>{estado.busca=e.target.value; render();},120); });
+async function exportaCargo(c){
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Descritivo", {properties:{defaultRowHeight:16}});
+  ws.columns = [{width:30},{width:92}];
+  // titulo
+  ws.mergeCells("A1:B1");
+  const t = ws.getCell("A1");
+  t.value = (c.titulo||"Cargo").toUpperCase();
+  t.font = {name:"Calibri",bold:true,size:16,color:{argb:"FFFFFFFF"}};
+  t.fill = {type:"pattern",pattern:"solid",fgColor:{argb:RED}};
+  t.alignment = {vertical:"middle",horizontal:"left",indent:1};
+  ws.getRow(1).height = 30;
+  ws.mergeCells("A2:B2");
+  const s = ws.getCell("A2");
+  s.value = [c.codigo, (c.area||"").split(";").map(x=>x.trim()).join(" / ")].filter(Boolean).join("   |   ");
+  s.font = {name:"Calibri",size:10,italic:true,color:{argb:"FF888892"}};
+  s.alignment = {vertical:"middle",horizontal:"left",indent:1};
+  ws.getRow(2).height = 20;
+  let r = 4;
+  for(const [k,rot] of CAMPOS){
+    if(k==="titulo") continue;
+    const rowLabel = ws.getCell(`A${r}`), rowVal = ws.getCell(`B${r}`);
+    rowLabel.value = rot;
+    rowLabel.font = {name:"Calibri",bold:true,size:10,color:{argb:TINTA}};
+    rowLabel.fill = {type:"pattern",pattern:"solid",fgColor:{argb:CINZA}};
+    rowLabel.alignment = {vertical:"top",horizontal:"left",wrapText:true,indent:1};
+    rowLabel.border = bordaFina;
+    const vazio = ehVazio(c[k]);
+    rowVal.value = plano(c[k]);
+    rowVal.font = {name:"Calibri",size:11,italic:vazio,color:{argb:vazio?"FFC0392B":TINTA}};
+    rowVal.alignment = {vertical:"top",horizontal:"left",wrapText:true,indent:1};
+    rowVal.border = bordaFina;
+    r++;
+  }
+  await baixa(wb, "Cargo_"+nomeArq(c.titulo||c.codigo)+".xlsx");
+}
+
+async function exportaBase(){
+  const lista = filtra();
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Base de Cargos", {views:[{state:"frozen",ySplit:1}]});
+  ws.columns = CAMPOS.map(([k,rot])=>({header:rot, key:k, width:[ "responsabilidades","missao","comp_comportamentais","comp_tecnicas","treinamentos","outras"].includes(k)?46:20}));
+  const head = ws.getRow(1);
+  head.height = 26;
+  head.eachCell(cell=>{
+    cell.font={name:"Calibri",bold:true,size:11,color:{argb:"FFFFFFFF"}};
+    cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:RED}};
+    cell.alignment={vertical:"middle",horizontal:"left",wrapText:true,indent:1};
+    cell.border=bordaFina;
+  });
+  lista.forEach((c,idx)=>{
+    const row = ws.addRow(CAMPOS.reduce((o,[k])=>{o[k]=plano(c[k]);return o;},{}));
+    row.eachCell(cell=>{
+      cell.alignment={vertical:"top",horizontal:"left",wrapText:true,indent:1};
+      cell.font={name:"Calibri",size:10.5,color:{argb:TINTA}};
+      cell.border=bordaFina;
+      if(idx%2===1) cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:ZEBRA}};
+    });
+  });
+  ws.autoFilter = {from:{row:1,column:1}, to:{row:1,column:CAMPOS.length}};
+  await baixa(wb, "Base_de_Cargos_Wessel.xlsx");
+}
+$('btnBase').onclick = exportaBase;
+
+/* ===== Toast ===== */
+let tToast;
+function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(tToast); tToast=setTimeout(()=>el.classList.remove('show'),2600); }
+
+/* ===== Init ===== */
+$('stTotal').textContent = D.totalCargos;
+$('rodape').innerHTML = `Base gerada em ${esc(D.geradoEm||"")}. Fonte oficial: planilha em <b>/dados</b>. Uso interno Wessel.`;
+let tb;
+$('busca').addEventListener('input', e=>{
+  $('buscaWrap').classList.toggle('tem', !!e.target.value);
+  clearTimeout(tb); tb=setTimeout(()=>{ estado.busca=e.target.value; render(); }, 110);
+});
+$('btnLimpaBusca').onclick = ()=>{ estado.busca=''; $('busca').value=''; $('buscaWrap').classList.remove('tem'); render(); $('busca').focus(); };
 render();
 </script>
 </body>

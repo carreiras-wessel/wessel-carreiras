@@ -99,6 +99,31 @@ def como_lista(texto):
     return itens
 
 
+# --- Normalizacao de exibicao para setores (casing, siglas e acentos) ---
+_PREP = {"de", "da", "do", "das", "dos", "e", "a", "o", "em", "no", "na", "com", "para", "por"}
+_SIGLAS = {"rh": "RH", "ti": "TI", "pcp": "PCP", "pcm": "PCM", "ete": "ETE",
+           "atm": "ATM", "rj": "RJ", "hb": "HB", "cd": "CD"}
+_ACENTO = {"moidas": "Moídas", "hamburgueres": "Hambúrgueres", "logistica": "Logística",
+           "celula": "Célula", "vacuo": "Vácuo", "pressao": "Pressão", "socio": "Sócio"}
+
+
+def limpa_display(texto):
+    """Deixa um rotulo de setor apresentavel: Title Case com siglas e acentos."""
+    palavras = str(texto).split()
+    saida = []
+    for i, w in enumerate(palavras):
+        d = sem_acento(w)
+        if d in _SIGLAS:
+            saida.append(_SIGLAS[d])
+        elif d in _ACENTO:
+            saida.append(_ACENTO[d])
+        elif d in _PREP and i > 0:
+            saida.append(d)
+        else:
+            saida.append(w[:1].upper() + w[1:].lower())
+    return " ".join(saida)
+
+
 def acha_planilha():
     arquivos = sorted(glob.glob(str(PASTA_DADOS / "*.xlsx")))
     arquivos = [a for a in arquivos if not Path(a).name.startswith("~$")]
@@ -138,6 +163,9 @@ def main():
         for chave, i in indice.items():
             valor = limpa(linha[i]) if i < len(linha) else ""
             reg[chave] = como_lista(valor) if chave in CAMPOS_LISTA else valor
+        # padroniza a exibicao dos setores (nao afeta o mapeamento de areas)
+        if reg.get("setores"):
+            reg["setores"] = [limpa_display(s) for s in reg["setores"]]
         # unifica subordinados diretos/indiretos numa lista, se vierem separados
         if "subordinados_diretos" in reg or "subordinados_indiretos" in reg:
             reg["subordinados"] = reg.get("subordinados_diretos", []) + reg.get("subordinados_indiretos", [])
